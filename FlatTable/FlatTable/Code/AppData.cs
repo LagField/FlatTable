@@ -78,7 +78,6 @@ namespace FlatTable
             else
             {
                 config = new Config();
-                config.excelFolderPath = AppDomain.CurrentDomain.BaseDirectory;
             }
         }
 
