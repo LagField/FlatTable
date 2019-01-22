@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlatTable", "FlatTable\FlatTable\FlatTable.csproj", "{17253577-9F8E-40F6-997E-511428F03BE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlatTable.Desktop", "FlatTable\FlatTable.Desktop\FlatTable.Desktop.csproj", "{6C661B5C-F9D5-498D-9BBE-42BAA474B5F7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{17253577-9F8E-40F6-997E-511428F03BE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17253577-9F8E-40F6-997E-511428F03BE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17253577-9F8E-40F6-997E-511428F03BE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17253577-9F8E-40F6-997E-511428F03BE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C661B5C-F9D5-498D-9BBE-42BAA474B5F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C661B5C-F9D5-498D-9BBE-42BAA474B5F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C661B5C-F9D5-498D-9BBE-42BAA474B5F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C661B5C-F9D5-498D-9BBE-42BAA474B5F7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

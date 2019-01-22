@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <!--<TargetFramework>netstandard1.6</TargetFramework>-->
+        <TargetFramework>net461</TargetFramework>
+        <RootNamespace>FlatTable</RootNamespace>
+        <PackageVersion>1.0</PackageVersion>
+        <Title>FlatTable</Title>
+        <Copyright>Copyright LagField© 2019</Copyright>
+        <Description></Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Eto.Forms" Version="2.4.1" />
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    </ItemGroup>
+
+</Project>
