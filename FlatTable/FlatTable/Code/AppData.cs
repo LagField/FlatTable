@@ -49,6 +49,24 @@ namespace FlatTable
                 return config.csharpFolderPath;
             }
         }
+        
+        public static string BinaryFileFolderPath
+        {
+            set
+            {
+                bool needRefreshConfigFile = config.binaryFileFolderPath != value;
+
+                config.binaryFileFolderPath = value;
+                if (needRefreshConfigFile)
+                {
+                    SaveConfigFile();
+                }
+            }
+            get
+            {
+                return config.binaryFileFolderPath;
+            }
+        }
 
         public static void Init()
         {
@@ -79,5 +97,6 @@ namespace FlatTable
     {
         public string excelFolderPath;
         public string csharpFolderPath;
+        public string binaryFileFolderPath;
     }
 }

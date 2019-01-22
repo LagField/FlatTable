@@ -17,6 +17,10 @@ namespace FlatTable
         private Button csharpFolderSelectButton;
         private Button jumpToCSharpFolderButton;
 
+        private Label binaryFileFolderLabel;
+        private Button binaryFileFolderSelectButton;
+        private Button jumpToBinaryFileFolderButton;
+
         public SettingControl()
         {
             settingAreaLayout = new TableLayout
@@ -30,9 +34,11 @@ namespace FlatTable
         {
             TableRow excelFolderRow = CreateExcelFolderControlRow();
             TableRow csharpFolderRow = CreateCSharpFileFolderControlRow();
+            TableRow binaryFolderRow = CreateBinaryFileFolderControlRow();
 
             settingAreaLayout.Rows.Add(excelFolderRow);
             settingAreaLayout.Rows.Add(csharpFolderRow);
+            settingAreaLayout.Rows.Add(binaryFolderRow);
             settingAreaLayout.Rows.Add(new TableRow {ScaleHeight = true});
 
             return settingAreaLayout;
@@ -66,6 +72,21 @@ namespace FlatTable
             return new TableRow(new TableCell(csharpFolderLabel, true), csharpFolderSelectButton, jumpToCSharpFolderButton);
         }
 
+        private TableRow CreateBinaryFileFolderControlRow()
+        {
+            binaryFileFolderLabel = new Label
+                {Text = string.IsNullOrEmpty(AppData.BinaryFileFolderPath) ? "请选择目录" : AppData.BinaryFileFolderPath};
+
+            binaryFileFolderSelectButton = new Button {Text = "选择二进制文件输出目录"};
+            binaryFileFolderSelectButton.Click += OnBinaryFolderSelectButtonClick;
+
+            jumpToBinaryFileFolderButton = new Button {Text = "跳转到文件目录"};
+            jumpToBinaryFileFolderButton.Click += OnJumpToBinaryFolderButtonClick;
+
+            return new TableRow(new TableCell(binaryFileFolderLabel, true), binaryFileFolderSelectButton,
+                jumpToBinaryFileFolderButton);
+        }
+
         private void OnJumpToExcelFolderButtonClick(object sender, EventArgs e)
         {
             if (Directory.Exists(AppData.ExcelFolderPath))
@@ -76,9 +97,17 @@ namespace FlatTable
 
         private void OnJumpToCSharpFolderButtonClick(object sender, EventArgs e)
         {
-            if (Directory.Exists(AppData.ExcelFolderPath))
+            if (Directory.Exists(AppData.CSharpFolderPath))
             {
                 Application.Instance.Open(AppData.CSharpFolderPath);
+            }
+        }
+
+        private void OnJumpToBinaryFolderButtonClick(object sender, EventArgs e)
+        {
+            if (Directory.Exists(AppData.BinaryFileFolderPath))
+            {
+                Application.Instance.Open(AppData.BinaryFileFolderPath);
             }
         }
 
@@ -97,8 +126,18 @@ namespace FlatTable
             SelectFolderDialog selectFolderDialog = new SelectFolderDialog {Directory = AppData.CSharpFolderPath};
             if (selectFolderDialog.ShowDialog(settingAreaLayout) == DialogResult.Ok)
             {
-                AppData.ExcelFolderPath = selectFolderDialog.Directory;
-                csharpFolderLabel.Text = AppData.ExcelFolderPath;
+                AppData.CSharpFolderPath = selectFolderDialog.Directory;
+                csharpFolderLabel.Text = AppData.CSharpFolderPath;
+            }
+        }
+
+        private void OnBinaryFolderSelectButtonClick(object sender, EventArgs e)
+        {
+            SelectFolderDialog selectFolderDialog = new SelectFolderDialog {Directory = AppData.BinaryFileFolderPath};
+            if (selectFolderDialog.ShowDialog(settingAreaLayout) == DialogResult.Ok)
+            {
+                AppData.BinaryFileFolderPath = selectFolderDialog.Directory;
+                binaryFileFolderLabel.Text = AppData.BinaryFileFolderPath;
             }
         }
     }
