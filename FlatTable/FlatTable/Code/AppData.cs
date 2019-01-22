@@ -13,6 +13,42 @@ namespace FlatTable
         {
             get { return AppDomain.CurrentDomain.BaseDirectory + "config.json"; }
         }
+        
+        public static string ExcelFolderPath
+        {
+            set
+            {
+                bool needRefreshConfigFile = config.excelFolderPath != value;
+
+                config.excelFolderPath = value;
+                if (needRefreshConfigFile)
+                {
+                    SaveConfigFile();
+                }
+            }
+            get
+            {
+                return config.excelFolderPath;
+            }
+        }
+
+        public static string CSharpFolderPath
+        {
+            set
+            {
+                bool needRefreshConfigFile = config.csharpFolderPath != value;
+
+                config.csharpFolderPath = value;
+                if (needRefreshConfigFile)
+                {
+                    SaveConfigFile();
+                }
+            }
+            get
+            {
+                return config.csharpFolderPath;
+            }
+        }
 
         public static void Init()
         {
@@ -26,21 +62,6 @@ namespace FlatTable
                 config = new Config();
                 config.excelFolderPath = AppDomain.CurrentDomain.BaseDirectory;
             }
-        }
-
-        public static string ExcelFolderPath
-        {
-            set
-            {
-                bool needRefreshConfigFile = config.excelFolderPath != value;
-
-                config.excelFolderPath = value;
-                if (needRefreshConfigFile)
-                {
-                    SaveConfigFile();
-                }
-            }
-            get { return config.excelFolderPath; }
         }
 
         /// <summary>
@@ -57,5 +78,6 @@ namespace FlatTable
     public class Config
     {
         public string excelFolderPath;
+        public string csharpFolderPath;
     }
 }
