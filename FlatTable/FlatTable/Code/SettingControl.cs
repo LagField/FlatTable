@@ -21,13 +21,16 @@ namespace FlatTable
         private Button binaryFileFolderSelectButton;
         private Button jumpToBinaryFileFolderButton;
 
-        public SettingControl()
+        private Action onExcelPathChanged;
+
+        public SettingControl(Action onExcelPathChanged)
         {
             settingAreaLayout = new TableLayout
             {
                 Padding = new Padding(10, 30, 10, 10),
                 Spacing = new Size(10, 20)
             };
+            this.onExcelPathChanged = onExcelPathChanged;
         }
 
         public TableLayout CreateSettingAreaLayout()
@@ -118,6 +121,8 @@ namespace FlatTable
             {
                 AppData.ExcelFolderPath = selectFolderDialog.Directory;
                 excelFolderLabel.Text = AppData.ExcelFolderPath;
+
+                onExcelPathChanged?.Invoke();
             }
         }
 
