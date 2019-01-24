@@ -66,6 +66,13 @@ namespace FlatTable
                 }
 
                 string fileName = Path.GetFileName(filePath);
+
+                //忽略Excel 2016的临时文件
+                if (fileName[0] == '~')
+                {
+                    continue;
+                }
+                
                 CheckBox newFileCheckBox = new CheckBox {Text = fileName};
                 fileCheckBoxList.Add(newFileCheckBox);
                 filePathList.Add(filePath);

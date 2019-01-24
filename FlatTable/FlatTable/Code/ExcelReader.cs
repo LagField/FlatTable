@@ -39,7 +39,7 @@ namespace FlatTable
 
             try
             {
-                GetValideRowAndColumnCount(valueTable, out int rowCount, out int columnCount);
+                GetValidRowAndColumnCount(valueTable, out int rowCount, out int columnCount);
                 //如果少于4行(fieldname,include/exclude,typename,data)或者少于2列(id,otherdata)
                 if (rowCount <= 3 || columnCount <= 1)
                 {
@@ -73,7 +73,7 @@ namespace FlatTable
                     rowDatas[i - 3] = rowData;
                 }
 
-                FormatValidate(rowDatas[0]);
+                FormatValidate(rowDatas);
                 for (int i = 0; i < rowDatas.Length; i++)
                 {
                     ExcelRowData rowData = rowDatas[i];
@@ -104,11 +104,12 @@ namespace FlatTable
         /// <summary>
         /// 检查名称类型等写的格式是否有错误
         /// </summary>
-        /// <param name="firstRow"></param>
-        private void FormatValidate(ExcelRowData firstRow)
+        /// <param name="rowDatas"></param>
+        private void FormatValidate(ExcelRowData[] rowDatas)
         {
-            FieldNameValidate(firstRow);
-            ArrayTypeValidate(firstRow);
+            FieldNameValidate(rowDatas[0]);
+            ArrayTypeValidate(rowDatas[0]);
+            DuplicateIdValidate(rowDatas);
         }
 
         /// <summary>
@@ -122,16 +123,7 @@ namespace FlatTable
             for (int i = 0; i < firstRow.rowCellDatas.Length; i++)
             {
                 RowCellData cellData = firstRow.rowCellDatas[i];
-                if (cellData.isArray)
-                {
-                    //数组类型的名字不能和其他普通变量名字一样
-                    if (occuredFieldNameSet.Contains(cellData.arrayFieldNameWithoutIndex))
-                    {
-                        throw new ParseExcelException
-                            {exceptionMsg = $"文档首行有重复的field: {cellData.fieldName}.该数组名和普通field名字有重复.\n"};
-                    }
-                }
-                else
+                if (!cellData.isArray)
                 {
                     string fieldName = cellData.fieldName;
                     if (occuredFieldNameSet.Contains(fieldName))
@@ -140,6 +132,20 @@ namespace FlatTable
                     }
 
                     occuredFieldNameSet.Add(fieldName);
+                }
+            }
+
+            for (int i = 0; i < firstRow.rowCellDatas.Length; i++)
+            {
+                RowCellData cellData = firstRow.rowCellDatas[i];
+                if (cellData.isArray)
+                {
+                    //数组类型的名字不能和其他普通变量名字一样
+                    if (occuredFieldNameSet.Contains(cellData.arrayFieldNameWithoutIndex))
+                    {
+                        throw new ParseExcelException
+                            {exceptionMsg = $"文档首行有重复的field: {cellData.fieldName}.该数组名和普通field名字有重复.\n"};
+                    }
                 }
             }
         }
@@ -193,7 +199,34 @@ namespace FlatTable
             }
         }
 
-        private void GetValideRowAndColumnCount(object[,] valueTable, out int rowCount, out int columnCount)
+        /// <summary>
+        /// 第一列ID必须不能重复
+        /// </summary>
+        /// <param name="rowDatas"></param>
+        /// <exception cref="ParseExcelException"></exception>
+        private void DuplicateIdValidate(ExcelRowData[] rowDatas)
+        {
+            HashSet<int> idSet = new HashSet<int>();
+            for (int i = 0; i < rowDatas.Length; i++)
+            {
+                ExcelRowData rowData = rowDatas[i];
+                if (int.TryParse(rowData.rowCellDatas[0].value, out int id))
+                {
+                    if (idSet.Contains(id))
+                    {
+                        throw new ParseExcelException {exceptionMsg = $"表格中第一列id有重复的数字: {id}"};
+                    }
+
+                    idSet.Add(id);
+                }
+                else
+                {
+                    throw new ParseExcelException {exceptionMsg = $"表格中第一列id有无法解析的整数,行号: {i + 1}"};
+                }
+            }
+        }
+
+        private void GetValidRowAndColumnCount(object[,] valueTable, out int rowCount, out int columnCount)
         {
             rowCount = 0;
             columnCount = 0;
@@ -211,7 +244,8 @@ namespace FlatTable
             for (int i = 0; i < valueTable.GetLength(0); i++)
             {
                 object valueObject = valueTable[i + 1, 1];
-                if (valueObject == null || string.IsNullOrEmpty(valueObject.ToString()))
+                //第二行的include选填
+                if ((valueObject == null || string.IsNullOrEmpty(valueObject.ToString())) && i + 1 != 2)
                 {
                     break;
                 }
@@ -270,7 +304,8 @@ namespace FlatTable
         {
             object valueObject = valueTable[rowIndex + 1, columnIndex + 1];
 
-            bool isInclude = valueTable[2, columnIndex + 1].ToString().ToLower() != ColumnType.Exclude;
+            object secondRowObject = valueTable[2, columnIndex + 1];
+            bool isInclude = secondRowObject == null || secondRowObject.ToString().ToLower() != ColumnType.Exclude;
             if (!isInclude)
             {
                 return null;
@@ -279,12 +314,9 @@ namespace FlatTable
             string valueString = valueObject == null ? "" : valueObject.ToString();
             string fieldName = valueTable[1, columnIndex + 1].ToString().ToLower();
             string typeName = valueTable[3, columnIndex + 1].ToString().ToLower();
-            bool isArrayType = typeName.Contains("[]");
 
-            if (isArrayType)
-            {
-                typeName = typeName.Replace("[]", "");
-            }
+            MatchCollection matchCollection = Regex.Matches(fieldName, ArrayIndexPattern);
+            bool isArrayType = matchCollection.Count == 1;
 
             if (!supportTypeSet.Contains(typeName))
             {
@@ -307,13 +339,6 @@ namespace FlatTable
             //记录一些和数组相关的信息
             if (isArrayType)
             {
-                MatchCollection matchCollection = Regex.Matches(fieldName, ArrayIndexPattern);
-                if (matchCollection.Count != 1)
-                {
-                    throw new ParseExcelException
-                        {exceptionMsg = $"文档列 {fieldName} 是数组类型，但是它有0个或多个index申明.\n" + "正确格式: variable[0]"};
-                }
-
                 Match matchResult = matchCollection[0];
 
                 cellData.arrayFieldNameWithoutIndex = fieldName.Replace(matchResult.Value, "");

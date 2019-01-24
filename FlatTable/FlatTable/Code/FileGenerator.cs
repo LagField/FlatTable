@@ -318,9 +318,9 @@ namespace FlatTable
                 cellIndex += arrayLength;
             }
 
+            fw.WriteLine("list.Add(v);");
+            fw.WriteLine("map.Add(v.id, v);");
             fw.EndBlock();
-
-
             fw.EndBlock();
         }
 
@@ -344,9 +344,20 @@ namespace FlatTable
         {
             fw.WriteLine($"for (int j = 0; j < {arrayLength}; j++)");
             fw.BeginBlock();
-            fw.WriteLine(
-                $"v.{fieldNameWithoutIndexName}[j] = BitConverter.{bitConvertMethodNameDic[typeName]}(bytes, readingPosition);");
-            fw.WriteLine($"readingPosition += {sizeOfTypeDic[typeName]};");
+
+            if (typeName != "string")
+            {
+                fw.WriteLine(
+                    $"v.{fieldNameWithoutIndexName}[j] = BitConverter.{bitConvertMethodNameDic[typeName]}(bytes, readingPosition);");
+                fw.WriteLine($"readingPosition += {sizeOfTypeDic[typeName]};");
+            }
+            else
+            {
+                fw.WriteLine("stringByteLength = BitConverter.ToUInt16(bytes, readingPosition);");
+                fw.WriteLine("readingPosition += 2;");
+                fw.WriteLine($"v.{fieldNameWithoutIndexName}[j] = System.Text.Encoding.UTF8.GetString(bytes, readingPosition, stringByteLength);");
+                fw.WriteLine("readingPosition += stringByteLength;");
+            }
 
             fw.EndBlock();
         }
