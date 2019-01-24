@@ -241,7 +241,7 @@ namespace FlatTable
                     }
                     else
                     {
-                        throw new WriteFileException {errorMsg = $"写文件发生错误，代码{WriteFileErrorCode.ArraySize}，请联系作者修改."};
+                        throw new WriteFileException {errorMsg = $"写文件发生错误，arraySizeDictionary中没有定义{fieldName}的大小."};
                     }
                 }
             }
@@ -355,10 +355,5 @@ namespace FlatTable
     public class WriteFileException : Exception
     {
         public string errorMsg;
-    }
-
-    public struct WriteFileErrorCode
-    {
-        public const int ArraySize = 1000;
     }
 }
