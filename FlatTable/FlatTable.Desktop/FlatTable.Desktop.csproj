@@ -6,11 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\FlatTable\FlatTable.csproj"/>
+        <ProjectReference Include="..\FlatTable\FlatTable.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Eto.Platform.Wpf" Version="2.4.1"/>
+        <PackageReference Include="Eto.Platform.Wpf" Version="2.4.1" />
         <!--<PackageReference Include="Eto.Platform.Gtk" Version="2.4.1"/>-->
         <!--<PackageReference Include="Eto.Platform.Mac64" Version="2.4.1"/>-->
     </ItemGroup>
