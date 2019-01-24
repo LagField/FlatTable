@@ -1,14 +1,17 @@
 using System.Diagnostics;
+using System.IO;
 
 namespace FlatTable
 {
     public class FileProcesser
     {
         private ExcelReader excelReader;
+        private FileGenerator fileGenerator;
 
         public FileProcesser()
         {
             excelReader = new ExcelReader();
+            fileGenerator = new FileGenerator();
         }
 
         public void Process(string[] checkedFilePath)
@@ -27,12 +30,8 @@ namespace FlatTable
                 {
                     return;
                 }
-                
-                for (int j = 0; j < rowDatas.Length; j++)
-                {
-                    ExcelRowData rowData = rowDatas[j];
-                    Debug.WriteLine(rowData.ToString());
-                }
+
+                fileGenerator.GenerateFile(rowDatas,Path.GetFileNameWithoutExtension(checkedFilePath[i]));
             }
         }
     }
