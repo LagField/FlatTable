@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using Eto.Forms;
 
 namespace FlatTable
 {
@@ -33,6 +34,8 @@ namespace FlatTable
 
                 fileGenerator.GenerateFile(rowDatas,Path.GetFileNameWithoutExtension(checkedFilePath[i]));
             }
+
+            MessageBox.Show("完成");
         }
     }
 }

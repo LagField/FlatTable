@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Eto.Forms;
@@ -11,35 +12,59 @@ namespace FlatTable
     /// </summary>
     public class FileGenerator
     {
-        private static Dictionary<string, Action<BinaryWriter, string>> valueTypeWriterDictionary =
+        private static Dictionary<string, Action<BinaryWriter, string>> typeBinaryWriterDictionary =
             new Dictionary<string, Action<BinaryWriter, string>>
             {
                 {
                     "int", (writer, valueString) =>
                     {
-                        int value = int.Parse(valueString);
-                        writer.Write(value);
+                        if (int.TryParse(valueString, out int value))
+                        {
+                            writer.Write(value);
+                        }
+                        else
+                        {
+                            writer.Write(0);
+                        }
                     }
                 },
                 {
                     "short", (writer, valueString) =>
                     {
-                        short value = short.Parse(valueString);
-                        writer.Write(value);
+                        if (short.TryParse(valueString, out short value))
+                        {
+                            writer.Write(value);
+                        }
+                        else
+                        {
+                            writer.Write((short)0);
+                        }
                     }
                 },
                 {
                     "float", (writer, valueString) =>
                     {
-                        float value = float.Parse(valueString);
-                        writer.Write(value);
+                        if (float.TryParse(valueString, out float value))
+                        {
+                            writer.Write(value);
+                        }
+                        else
+                        {
+                            writer.Write((float)0);
+                        }
                     }
                 },
                 {
                     "bool", (writer, valueString) =>
                     {
-                        bool value = bool.Parse(valueString);
-                        writer.Write(value);
+                        if (bool.TryParse(valueString, out bool value))
+                        {
+                            writer.Write(value);
+                        }
+                        else
+                        {
+                            writer.Write(false);
+                        }
                     }
                 },
                 {
@@ -55,6 +80,11 @@ namespace FlatTable
 
         public void GenerateFile(ExcelRowData[] rowDatas, string fileName)
         {
+//            for (int i = 0; i < rowDatas.Length; i++)
+//            {
+//                Debug.WriteLine(rowDatas[i]);
+//            }
+//            
             if (!Directory.Exists(AppData.BinaryFileFolderPath))
             {
                 MessageBox.Show("二进制文件路径不存在");
@@ -84,6 +114,10 @@ namespace FlatTable
 
         private void WriteCellBinary(BinaryWriter bw, RowCellData cellData)
         {
+            if (typeBinaryWriterDictionary.TryGetValue(cellData.typeName, out Action<BinaryWriter, string> handler))
+            {
+                handler(bw, cellData.value);
+            }
         }
     }
 }

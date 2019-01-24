@@ -74,23 +74,23 @@ namespace FlatTable
                 }
 
                 FormatValidate(rowDatas[0]);
-//                for (int i = 0; i < rowDatas.Length; i++)
-//                {
-//                    ExcelRowData rowData = rowDatas[i];
-//                    ReorderRowData(ref rowData);
-//                }
+                for (int i = 0; i < rowDatas.Length; i++)
+                {
+                    ExcelRowData rowData = rowDatas[i];
+                    ReorderRowData(ref rowData);
+                }
 
                 return rowDatas;
             }
             catch (ParseExcelException parseException)
             {
                 Console.WriteLine("parse exception: " + parseException.exceptionMsg);
-                MessageBox.Show($"文档{currentReadingFileName}解析发生错误\n{parseException.exceptionMsg}");
+                MessageBox.Show($"文档{currentReadingFileName}解析发生错误\n{parseException.exceptionMsg}", MessageBoxType.Error);
             }
             catch (Exception e)
             {
                 Console.WriteLine("occur error: " + e);
-                MessageBox.Show($"文档{currentReadingFileName}发生未知错误\n{e}");
+                MessageBox.Show($"文档{currentReadingFileName}发生未知错误\n{e}", MessageBoxType.Error);
             }
             finally
             {
@@ -127,7 +127,8 @@ namespace FlatTable
                     //数组类型的名字不能和其他普通变量名字一样
                     if (occuredFieldNameSet.Contains(cellData.arrayFieldNameWithoutIndex))
                     {
-                        throw new ParseExcelException {exceptionMsg = $"文档首行有重复的field: {cellData.fieldName}.该数组名和普通field名字有重复.\n"};
+                        throw new ParseExcelException
+                            {exceptionMsg = $"文档首行有重复的field: {cellData.fieldName}.该数组名和普通field名字有重复.\n"};
                     }
                 }
                 else
@@ -162,7 +163,8 @@ namespace FlatTable
                     List<int> occuredArrayIndexList = occuredArrayFields[cellData.arrayFieldNameWithoutIndex];
                     if (occuredArrayIndexList.Contains(cellData.arrayIndex))
                     {
-                        throw new ParseExcelException {exceptionMsg = $"文档列 {cellData.fieldName} 是数组类型，但是有重复的index: {cellData.arrayIndex}."};
+                        throw new ParseExcelException
+                            {exceptionMsg = $"文档列 {cellData.fieldName} 是数组类型，但是有重复的index: {cellData.arrayIndex}."};
                     }
 
                     occuredArrayIndexList.Add(cellData.arrayIndex);
@@ -226,27 +228,40 @@ namespace FlatTable
         {
             RowCellData[] originCellDatas = rowData.rowCellDatas;
             List<RowCellData> newCellDataList = new List<RowCellData>();
-            Dictionary<string, List<RowCellData>> arrayTypeCellDictionary = new Dictionary<string, List<RowCellData>>();
+            //先把非数组元素依次放进去
             for (int i = 0; i < originCellDatas.Length; i++)
             {
                 RowCellData cellData = originCellDatas[i];
                 if (!cellData.isArray)
                 {
-                    //先把非数组元素依次放进去
                     newCellDataList.Add(cellData);
                 }
-                //需要把数组类型，按名称和Index，依次添加到列表后面，这里先记录信息
-                else
-                {
-                    string fieldNameWithoutIndex = cellData.arrayFieldNameWithoutIndex;
+            }
 
-                    if (!arrayTypeCellDictionary.ContainsKey(fieldNameWithoutIndex))
+            //把数组类型，按名称和Index，依次添加到列表后面
+            Dictionary<string, List<RowCellData>> arrayTypeCellDictionary = new Dictionary<string, List<RowCellData>>();
+            for (int i = 0; i < originCellDatas.Length; i++)
+            {
+                RowCellData cellData = originCellDatas[i];
+                if (cellData.isArray)
+                {
+                    if (!arrayTypeCellDictionary.ContainsKey(cellData.arrayFieldNameWithoutIndex))
                     {
-                        
+                        arrayTypeCellDictionary.Add(cellData.arrayFieldNameWithoutIndex, new List<RowCellData> {cellData});
+                    }
+                    else
+                    {
+                        arrayTypeCellDictionary[cellData.arrayFieldNameWithoutIndex].Add(cellData);
                     }
                 }
             }
 
+            foreach (var kv in arrayTypeCellDictionary)
+            {
+                List<RowCellData> cellDataList = kv.Value;
+                cellDataList.Sort((a, b) => a.arrayIndex - b.arrayIndex);
+                newCellDataList.AddRange(cellDataList);
+            }
 
             rowData.rowCellDatas = newCellDataList.ToArray();
         }
@@ -302,7 +317,7 @@ namespace FlatTable
                 Match matchResult = matchCollection[0];
 
                 cellData.arrayFieldNameWithoutIndex = fieldName.Replace(matchResult.Value, "");
-             
+
                 string arrayIndexString = matchResult.Value.Substring(1, matchResult.Value.Length - 2);
                 if (!int.TryParse(arrayIndexString, out int arrayIndex))
                 {
@@ -362,10 +377,12 @@ namespace FlatTable
         public string typeName;
         public string value;
         public bool isArray;
+
         /// <summary>
         /// 当是数组类型时，该值才有效
         /// </summary>
         public string arrayFieldNameWithoutIndex = "";
+
         /// <summary>
         /// 当是数组类型时，该值才有效
         /// </summary>
