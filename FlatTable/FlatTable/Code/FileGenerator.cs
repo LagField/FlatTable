@@ -179,7 +179,7 @@ namespace FlatTable
 
             fw.EndBlock();
 
-            File.WriteAllText($"{AppData.CSharpFolderPath}/{fileName}.cs", fw.ToString());
+            File.WriteAllText($"{AppData.CSharpFolderPath}/{fileName}Table.cs", fw.ToString());
         }
 
         private void WriteUsing(FormatWriter fw)
