@@ -41,7 +41,7 @@ namespace FlatTable
             {
                 GetValideRowAndColumnCount(valueTable, out int rowCount, out int columnCount);
                 //如果少于4行(fieldname,include/exclude,typename,data)或者少于2列(id,otherdata)
-                if (rowCount <= 4 || columnCount <= 1)
+                if (rowCount <= 3 || columnCount <= 1)
                 {
                     throw new ParseExcelException {exceptionMsg = $"文档行列数量过少，无有效数据.行{rowCount} 列{columnCount}"};
                 }
@@ -73,7 +73,12 @@ namespace FlatTable
                     rowDatas[i - 3] = rowData;
                 }
 
-                DataValidate(rowDatas[0]);
+                FormatValidate(rowDatas[0]);
+//                for (int i = 0; i < rowDatas.Length; i++)
+//                {
+//                    ExcelRowData rowData = rowDatas[i];
+//                    ReorderRowData(ref rowData);
+//                }
 
                 return rowDatas;
             }
@@ -97,10 +102,10 @@ namespace FlatTable
         }
 
         /// <summary>
-        /// 检查名称类型等是否有错误
+        /// 检查名称类型等写的格式是否有错误
         /// </summary>
         /// <param name="firstRow"></param>
-        private void DataValidate(ExcelRowData firstRow)
+        private void FormatValidate(ExcelRowData firstRow)
         {
             FieldNameValidate(firstRow);
             ArrayTypeValidate(firstRow);
@@ -119,19 +124,10 @@ namespace FlatTable
                 RowCellData cellData = firstRow.rowCellDatas[i];
                 if (cellData.isArray)
                 {
-                    string fieldName = cellData.fieldName;
-                    MatchCollection matchCollection = Regex.Matches(fieldName, ArrayIndexPattern);
-                    if (matchCollection.Count != 1)
-                    {
-                        throw new ParseExcelException
-                            {exceptionMsg = $"文档列 {fieldName} 是数组类型，但是它有0个或多个index申明.\n" + "正确格式: variable[0]"};
-                    }
-
-                    string fieldNameWithoutIndex = fieldName.Replace(matchCollection[0].Value, "");
                     //数组类型的名字不能和其他普通变量名字一样
-                    if (occuredFieldNameSet.Contains(fieldNameWithoutIndex))
+                    if (occuredFieldNameSet.Contains(cellData.arrayFieldNameWithoutIndex))
                     {
-                        throw new ParseExcelException {exceptionMsg = $"文档首行有重复的field: {fieldName}.该数组名和普通field名字有重复.\n"};
+                        throw new ParseExcelException {exceptionMsg = $"文档首行有重复的field: {cellData.fieldName}.该数组名和普通field名字有重复.\n"};
                     }
                 }
                 else
@@ -161,43 +157,20 @@ namespace FlatTable
                     continue;
                 }
 
-                string fieldName = cellData.fieldName;
-                MatchCollection matchCollection = Regex.Matches(fieldName, ArrayIndexPattern);
-                if (matchCollection.Count != 1)
+                if (occuredArrayFields.ContainsKey(cellData.arrayFieldNameWithoutIndex))
                 {
-                    throw new ParseExcelException
-                        {exceptionMsg = $"文档列 {fieldName} 是数组类型，但是它有0个或多个index申明.\n" + "正确格式: variable[0]"};
-                }
-
-                Match matchResult = matchCollection[0];
-                if (!matchResult.Success)
-                {
-                    throw new ParseExcelException
-                        {exceptionMsg = $"文档列 {fieldName} 是数组类型，但是无法解析它的index.\n" + "正确格式: variable[0]"};
-                }
-
-                string fieldNameWithoutIndex = fieldName.Replace(matchResult.Value, "");
-
-                string arrayIndexString = matchResult.Value.Substring(1, matchResult.Value.Length - 2);
-                if (!int.TryParse(arrayIndexString, out int arrayIndex))
-                {
-                    throw new ParseExcelException {exceptionMsg = $"文档列 {fieldName} 是数组类型，但是它的index无法转换为int."};
-                }
-
-                if (occuredArrayFields.ContainsKey(fieldNameWithoutIndex))
-                {
-                    List<int> occuredArrayIndexList = occuredArrayFields[fieldNameWithoutIndex];
-                    if (occuredArrayIndexList.Contains(arrayIndex))
+                    List<int> occuredArrayIndexList = occuredArrayFields[cellData.arrayFieldNameWithoutIndex];
+                    if (occuredArrayIndexList.Contains(cellData.arrayIndex))
                     {
-                        throw new ParseExcelException {exceptionMsg = $"文档列 {fieldName} 是数组类型，但是有重复的index: {arrayIndex}."};
+                        throw new ParseExcelException {exceptionMsg = $"文档列 {cellData.fieldName} 是数组类型，但是有重复的index: {cellData.arrayIndex}."};
                     }
 
-                    occuredArrayIndexList.Add(arrayIndex);
+                    occuredArrayIndexList.Add(cellData.arrayIndex);
                 }
                 else
                 {
-                    List<int> indexList = new List<int> {arrayIndex};
-                    occuredArrayFields.Add(fieldNameWithoutIndex, indexList);
+                    List<int> indexList = new List<int> {cellData.arrayIndex};
+                    occuredArrayFields.Add(cellData.arrayFieldNameWithoutIndex, indexList);
                 }
             }
 
@@ -245,6 +218,39 @@ namespace FlatTable
             }
         }
 
+        /// <summary>
+        /// 重新排列行中的数据顺序，数组连续放到最后
+        /// </summary>
+        /// <param name="rowData"></param>
+        private void ReorderRowData(ref ExcelRowData rowData)
+        {
+            RowCellData[] originCellDatas = rowData.rowCellDatas;
+            List<RowCellData> newCellDataList = new List<RowCellData>();
+            Dictionary<string, List<RowCellData>> arrayTypeCellDictionary = new Dictionary<string, List<RowCellData>>();
+            for (int i = 0; i < originCellDatas.Length; i++)
+            {
+                RowCellData cellData = originCellDatas[i];
+                if (!cellData.isArray)
+                {
+                    //先把非数组元素依次放进去
+                    newCellDataList.Add(cellData);
+                }
+                //需要把数组类型，按名称和Index，依次添加到列表后面，这里先记录信息
+                else
+                {
+                    string fieldNameWithoutIndex = cellData.arrayFieldNameWithoutIndex;
+
+                    if (!arrayTypeCellDictionary.ContainsKey(fieldNameWithoutIndex))
+                    {
+                        
+                    }
+                }
+            }
+
+
+            rowData.rowCellDatas = newCellDataList.ToArray();
+        }
+
         private RowCellData ParseCellData(object[,] valueTable, int rowIndex, int columnIndex)
         {
             object valueObject = valueTable[rowIndex + 1, columnIndex + 1];
@@ -256,7 +262,7 @@ namespace FlatTable
             }
 
             string valueString = valueObject == null ? "" : valueObject.ToString();
-            string filedName = valueTable[1, columnIndex + 1].ToString().ToLower();
+            string fieldName = valueTable[1, columnIndex + 1].ToString().ToLower();
             string typeName = valueTable[3, columnIndex + 1].ToString().ToLower();
             bool isArrayType = typeName.Contains("[]");
 
@@ -278,10 +284,34 @@ namespace FlatTable
             RowCellData cellData = new RowCellData
             {
                 value = valueString,
-                fieldName = filedName,
+                fieldName = fieldName,
                 typeName = typeName,
                 isArray = isArrayType
             };
+
+            //记录一些和数组相关的信息
+            if (isArrayType)
+            {
+                MatchCollection matchCollection = Regex.Matches(fieldName, ArrayIndexPattern);
+                if (matchCollection.Count != 1)
+                {
+                    throw new ParseExcelException
+                        {exceptionMsg = $"文档列 {fieldName} 是数组类型，但是它有0个或多个index申明.\n" + "正确格式: variable[0]"};
+                }
+
+                Match matchResult = matchCollection[0];
+
+                cellData.arrayFieldNameWithoutIndex = fieldName.Replace(matchResult.Value, "");
+             
+                string arrayIndexString = matchResult.Value.Substring(1, matchResult.Value.Length - 2);
+                if (!int.TryParse(arrayIndexString, out int arrayIndex))
+                {
+                    throw new ParseExcelException {exceptionMsg = $"文档列 {fieldName} 是数组类型，但是它的index无法转换为int."};
+                }
+
+                cellData.arrayIndex = arrayIndex;
+            }
+
             return cellData;
         }
 
@@ -332,6 +362,14 @@ namespace FlatTable
         public string typeName;
         public string value;
         public bool isArray;
+        /// <summary>
+        /// 当是数组类型时，该值才有效
+        /// </summary>
+        public string arrayFieldNameWithoutIndex = "";
+        /// <summary>
+        /// 当是数组类型时，该值才有效
+        /// </summary>
+        public int arrayIndex = -1;
 
         public override string ToString()
         {
