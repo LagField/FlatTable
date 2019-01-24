@@ -19,5 +19,10 @@ namespace FlatTable
 
             return cacheBytes;
         }
+
+        public void Test()
+        {
+            const string filePath = ""
+        }
     }
 }
