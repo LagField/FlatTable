@@ -42,6 +42,14 @@
             Debug.Log(valueList[i].damage);
             Debug.Log(valueList[i].is_lock);
         }
+        
+        //-----------------------------------------
+        
+        //同样提供自定义加载方法，只需要设置加载回调函数，程序在Load时则会调用该函数进行加载
+        TableLoader.customLoader += MyCustomLoader;
+        TableLoader.Load<AnotherTestTable>();
+        
+        //加载函数会传入当前类型对应的文件名称，自定义函数里根据名称加载，并返回一个byte[]。因为Decode只会从头读取数据，读到需要的长度后就会停止，可以方便byte[]的复用。
 ```
 
 
