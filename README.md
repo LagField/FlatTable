@@ -27,7 +27,23 @@
         TableLoader.fileLoadPath = Application.streamingAssetsPath + "/Table";
         //加载
         TableLoader.Load<AnotherTestTable>();
+        
+        //接下来就可以读取数据了
+        if (AnotherTestTable.ins == null)
+        {
+            return;
+        }
+        List<AnotherTestTable.Value> valueList = AnotherTestTable.ins.list;
+        for (int i = 0; i < valueList.Count; i++)
+        {
+            Debug.Log(valueList[i].id);
+            Debug.Log(valueList[i].hero_name);
+            Debug.Log(valueList[i].speed);
+            Debug.Log(valueList[i].damage);
+            Debug.Log(valueList[i].is_lock);
+        }
 ```
+
 
 ## Excel表格格式要求
 表格只会读取第一个sheet。
@@ -43,4 +59,3 @@
 如果读取范围内有格子没有内容，则会记录该类型的默认值。
 
 excel格式例子可以参考[文件夹](/Test/ExcelFile/)
-
