@@ -4,11 +4,6 @@ using System.IO;
 
 namespace FlatTable
 {
-    public enum LoadType
-    {
-        FilePath,
-        ResourcePath
-    }
     public class TableLoader
     {
         private static byte[] cacheBytes;
@@ -29,7 +24,6 @@ namespace FlatTable
         }
 
         public static string fileLoadPath;
-        public static LoadType loadType = LoadType.FilePath;
         public static Func<string, byte[]> customLoader;
 
         public static void Load<T>() where T : TableBase, new()
@@ -43,8 +37,6 @@ namespace FlatTable
                 return;
             }
             
-            if (loadType == LoadType.FilePath)
-            {
                 string fileName = t.FileName + ".bytes";
                 string loadPath = Path.Combine(fileLoadPath, fileName);
                 if (!File.Exists(loadPath))
@@ -62,11 +54,6 @@ namespace FlatTable
                     fs.Read(bytes, 0, byteLength);
                     t.Decode(bytes);
                 }
-            }
-            else if (loadType == LoadType.ResourcePath)
-            {
-                
-            }
         }
     }
 }
