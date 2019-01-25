@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FlatTable
 {
-    public class TestTable
+    public class AnotherTestTable : TableBase
     {
         public class Value
         {
@@ -17,12 +17,17 @@ namespace FlatTable
             public string[] resource = new string[5];
         }
 
+        public static AnotherTestTable ins;
         public List<Value> list = new List<Value>();
         public Dictionary<int,Value> map = new Dictionary<int, Value>();
-        public const string FileName = "Test";
-
-        public void Decode(byte[] bytes)
+        public override string FileName
         {
+            get { return "AnotherTestTable"; }
+        }
+
+        public override void Decode(byte[] bytes)
+        {
+            ins = this;
             int readingPosition = 0;
             ushort stringByteLength = 0;
             for (int i = 0; i < 3; i++)
@@ -57,6 +62,20 @@ namespace FlatTable
                 list.Add(v);
                 map.Add(v.id, v);
             }
+        }
+        public override void Dispose()
+        {
+            if(list != null)
+            {
+                list.Clear();
+            }
+            list = null;
+            if(map != null)
+            {
+                map.Clear();
+            }
+            map = null;
+            ins = null;
         }
     }
 }

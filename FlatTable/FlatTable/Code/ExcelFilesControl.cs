@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -23,14 +24,17 @@ namespace FlatTable
             scrollLayout = new TableLayout();
 
             Scrollable fileScrollable = CreateFileScrollable();
+            TableLayout buttonsLayout = CreateSelectButtonsLayout();
 
             scrollLayout.Rows.Add(fileScrollable);
+            scrollLayout.Rows.Add(buttonsLayout);
+            scrollLayout.Rows.Add(new TableRow {ScaleHeight = true});
             return scrollLayout;
         }
-        
+
         private Scrollable CreateFileScrollable()
         {
-            Scrollable scrollable = new Scrollable {Size = new Size(-1, 300)};
+            Scrollable scrollable = new Scrollable {Size = new Size(-1, 350)};
             TableLayout fileLayout = new TableLayout {Padding = new Padding(10, 10, 20, 10), Spacing = new Size(0, 10)};
             if (string.IsNullOrEmpty(AppData.ExcelFolderPath) || !Directory.Exists(AppData.ExcelFolderPath))
             {
@@ -72,7 +76,7 @@ namespace FlatTable
                 {
                     continue;
                 }
-                
+
                 CheckBox newFileCheckBox = new CheckBox {Text = fileName};
                 fileCheckBoxList.Add(newFileCheckBox);
                 filePathList.Add(filePath);
@@ -85,6 +89,37 @@ namespace FlatTable
             }
 
             fileLayout.Rows.Add(new TableRow {ScaleHeight = true});
+        }
+
+        private TableLayout CreateSelectButtonsLayout()
+        {
+            TableLayout layout = new TableLayout {Padding = new Padding(0, 10, 0, 10), Spacing = new Size(50, 0)};
+
+            Button selectAllButton = new Button {Text = "选择所有文件"};
+            selectAllButton.Click += OnSelectAllFileClick;
+            Button selectNonButton = new Button {Text = "取消选择所有文件"};
+            selectNonButton.Click += OnSelectNonFileClick;
+
+            layout.Rows.Add(new TableRow(selectAllButton, selectNonButton));
+            layout.Rows.Add(new TableRow {ScaleHeight = true});
+
+            return layout;
+        }
+
+        private void OnSelectAllFileClick(object sender, EventArgs e)
+        {
+            for (int i = 0; i < fileCheckBoxList.Count; i++)
+            {
+                fileCheckBoxList[i].Checked = true;
+            }
+        }
+        
+        private void OnSelectNonFileClick(object sender, EventArgs e)
+        {
+            for (int i = 0; i < fileCheckBoxList.Count; i++)
+            {
+                fileCheckBoxList[i].Checked = false;
+            }
         }
 
         public string[] GetCheckedFilePaths()

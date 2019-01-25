@@ -16,7 +16,7 @@ namespace FlatTable
         public FlatTableForm()
         {
             Title = "FlatTable";
-            ClientSize = new Size(800, 300);
+            ClientSize = new Size(800, 400);
 
             settingControl = new SettingControl(OnExcelPathChanged);
             excelFilesControl = new ExcelFilesControl();

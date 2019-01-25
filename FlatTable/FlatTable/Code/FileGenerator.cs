@@ -135,7 +135,7 @@ namespace FlatTable
         {
             //二进制文件按照行列顺序，直接写到文件里就行
             using (BinaryWriter bw =
-                new BinaryWriter(File.Open(AppData.BinaryFileFolderPath + $"/{fileName}.bytes", FileMode.OpenOrCreate)))
+                new BinaryWriter(File.Open(AppData.BinaryFileFolderPath + $"/{fileName}Table.bytes", FileMode.OpenOrCreate)))
             {
                 for (int i = 0; i < rowDatas.Length; i++)
                 {
@@ -161,7 +161,7 @@ namespace FlatTable
             fw.WriteLine("namespace FlatTable");
             fw.BeginBlock();
 
-            fw.WriteLine($"public class {fileName}Table");
+            fw.WriteLine($"public class {fileName}Table : TableBase");
 
             fw.BeginBlock();
             WriteValueClass(fw, rowDatas[0]);
@@ -174,6 +174,8 @@ namespace FlatTable
 
             //写该表读取的方式
             WriteDecodeFunction(fw, rowDatas);
+
+            WriteDisposeCode(fw);
 
             fw.EndBlock();
 
@@ -249,15 +251,20 @@ namespace FlatTable
 
         private void WriteClassFields(FormatWriter fw, string fileName)
         {
+            fw.WriteLine($"public static {fileName}Table ins;");
             fw.WriteLine("public List<Value> list = new List<Value>();");
             fw.WriteLine("public Dictionary<int,Value> map = new Dictionary<int, Value>();");
-            fw.WriteLine($"public const string FileName = \"{fileName}\";");
+            fw.WriteLine("public override string FileName");
+            fw.BeginBlock();
+            fw.WriteLine($"get {{ return \"{fileName}Table\"; }}");
+            fw.EndBlock();
         }
 
         private void WriteDecodeFunction(FormatWriter fw, ExcelRowData[] rowDatas)
         {
-            fw.WriteLine("public void Decode(byte[] bytes)");
+            fw.WriteLine("public override void Decode(byte[] bytes)");
             fw.BeginBlock();
+            fw.WriteLine("ins = this;");
             fw.WriteLine("int readingPosition = 0;");
             fw.WriteLine("ushort stringByteLength = 0;");
             int rowCount = rowDatas.Length;
@@ -355,10 +362,31 @@ namespace FlatTable
             {
                 fw.WriteLine("stringByteLength = BitConverter.ToUInt16(bytes, readingPosition);");
                 fw.WriteLine("readingPosition += 2;");
-                fw.WriteLine($"v.{fieldNameWithoutIndexName}[j] = System.Text.Encoding.UTF8.GetString(bytes, readingPosition, stringByteLength);");
+                fw.WriteLine(
+                    $"v.{fieldNameWithoutIndexName}[j] = System.Text.Encoding.UTF8.GetString(bytes, readingPosition, stringByteLength);");
                 fw.WriteLine("readingPosition += stringByteLength;");
             }
 
+            fw.EndBlock();
+        }
+
+        private void WriteDisposeCode(FormatWriter fw)
+        {
+            fw.WriteLine("public override void Dispose()");
+            fw.BeginBlock();
+            fw.WriteLine("if(list != null)");
+            fw.BeginBlock();
+            fw.WriteLine("list.Clear();");
+            fw.EndBlock();
+            fw.WriteLine("list = null;");
+            
+            fw.WriteLine("if(map != null)");
+            fw.BeginBlock();
+            fw.WriteLine("map.Clear();");
+            fw.EndBlock();
+            fw.WriteLine("map = null;");
+            
+            fw.WriteLine("ins = null;");
             fw.EndBlock();
         }
     }

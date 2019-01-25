@@ -1,13 +1,18 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
 namespace FlatTable
 {
+    public enum LoadType
+    {
+        FilePath,
+        ResourcePath
+    }
     public class TableLoader
     {
         private static byte[] cacheBytes;
+
         public static byte[] GetByteArray(int length)
         {
             if (cacheBytes == null)
@@ -17,31 +22,50 @@ namespace FlatTable
 
             if (length > cacheBytes.Length)
             {
-                Array.Resize(ref cacheBytes,length);
+                cacheBytes = new byte[length];
             }
 
             return cacheBytes;
         }
 
-        public static void Test()
-        {
-            const string filePath = @"F:\U3dProjects\FlatTable\Test\BinaryFile\Test.bytes";
-            byte[] bytes = File.ReadAllBytes(filePath);
-            TestTable tt = new TestTable();
-            tt.Decode(bytes);
-            List<TestTable.Value> valueList = tt.list;
-            for (int i = 0; i < valueList.Count; i++)
-            {
-                Debug.WriteLine(valueList[i].id);
-                Debug.WriteLine(valueList[i].hero_name);
-                Debug.WriteLine(valueList[i].speed);
-                Debug.WriteLine(valueList[i].damage);
-                Debug.WriteLine(valueList[i].is_lock);
+        public static string fileLoadPath;
+        public static LoadType loadType = LoadType.FilePath;
+        public static Func<string, byte[]> customLoader;
 
-                for (int j = 0; j < valueList[i].resource.Length; j++)
+        public static void Load<T>() where T : TableBase, new()
+        {
+            T t = new T();
+
+            if (customLoader != null)
+            {
+                byte[] bytes = customLoader(t.FileName);
+                t.Decode(bytes);
+                return;
+            }
+            
+            if (loadType == LoadType.FilePath)
+            {
+                string fileName = t.FileName + ".bytes";
+                string loadPath = Path.Combine(fileLoadPath, fileName);
+                if (!File.Exists(loadPath))
                 {
-                    Debug.WriteLine(valueList[i].resource[j]);
+                    Debug.WriteLine(string.Format("file not found: {0}", loadPath));
+                    t.Dispose();
+                    return;
                 }
+
+                using (FileStream fs = File.OpenRead(loadPath))
+                {
+                    int byteLength = (int) fs.Length;
+                    fs.Position = 0;
+                    byte[] bytes = GetByteArray(byteLength);
+                    fs.Read(bytes, 0, byteLength);
+                    t.Decode(bytes);
+                }
+            }
+            else if (loadType == LoadType.ResourcePath)
+            {
+                
             }
         }
     }
