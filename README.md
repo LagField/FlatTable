@@ -18,3 +18,14 @@
 [TableBase](/FlatTable/FlatTable/RuntimeCode/TableBase.cs)   [TableLoader](/FlatTable/FlatTable/RuntimeCode/TableLoader.cs)   
 
 ## Excel表格格式要求
+表格只会读取第一个sheet。
+
+表格第一行为字段名，也就是导出后代码中的变量名称。第二行表示该列是否需要导出，如果不需要导出，则填入exclude即可(第一列不能exclude)。第三行表示该字段类型，目前支持类型有int,short,float,bool,string及他们的数组类型。
+
+表格有效区域由第一行和第一列来决定，工具会扫描第一行直到遇到第一个空格，并以此作为一行的长度(也就是说字段名是必填)。同样，表格会扫描第一列，直到碰到第一个空格(除了第二行可以不填),并以此作为一列的长度。
+
+表格的第一列必须是"id"，类型必须是int，第二行不能是exclude，而且id该列所有int值不能有重复的。因为生成的代码会自动组合一个字典，它的key就是存储的该id，可用于快速查表。
+
+如果要使用数组，则在字段名后面加上[]并在里面写上该元素是数组的第几个，从0开始，必须连续。例如map_id[0] map_id[1] map_id[2]。数组类型在表格中可以以任意顺序放置，程序会自动帮你把数组排序存放，只需要保证序号是从0开始且连续的，否则工具会弹出错误提示。
+
+excel格式例子可以参考[文件夹](/Test/ExcelFile/)
