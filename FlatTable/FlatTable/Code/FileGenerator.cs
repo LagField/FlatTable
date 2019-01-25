@@ -24,7 +24,14 @@ namespace FlatTable
                         }
                         else
                         {
-                            writer.Write(0);
+                            if (string.IsNullOrEmpty(valueString))
+                            {
+                                writer.Write(0);
+                            }
+                            else
+                            {
+                                throw new WriteFileException {errorMsg = $"无法解析 int.值: {valueString}"};
+                            }
                         }
                     }
                 },
@@ -37,7 +44,14 @@ namespace FlatTable
                         }
                         else
                         {
-                            writer.Write((short) 0);
+                            if (string.IsNullOrEmpty(valueString))
+                            {
+                                writer.Write((short) 0);
+                            }
+                            else
+                            {
+                                throw new WriteFileException {errorMsg = $"无法解析 short.值: {valueString}"};
+                            }
                         }
                     }
                 },
@@ -50,7 +64,14 @@ namespace FlatTable
                         }
                         else
                         {
-                            writer.Write((float) 0);
+                            if (string.IsNullOrEmpty(valueString))
+                            {
+                                writer.Write((float) 0);
+                            }
+                            else
+                            {
+                                throw new WriteFileException {errorMsg = $"无法解析 float.值: {valueString}"};
+                            }
                         }
                     }
                 },
@@ -63,7 +84,14 @@ namespace FlatTable
                         }
                         else
                         {
-                            writer.Write(false);
+                            if (string.IsNullOrEmpty(valueString))
+                            {
+                                writer.Write(false);
+                            }
+                            else
+                            {
+                                throw new WriteFileException {errorMsg = $"无法解析 bool.值: {valueString}"};
+                            }
                         }
                     }
                 },
@@ -134,8 +162,8 @@ namespace FlatTable
         private void WriteBinaryFile(ExcelRowData[] rowDatas, string fileName)
         {
             //二进制文件按照行列顺序，直接写到文件里就行
-            using (BinaryWriter bw =
-                new BinaryWriter(File.Open(AppData.BinaryFileFolderPath + $"/{fileName}Table.bytes", FileMode.OpenOrCreate)))
+            using (BinaryWriter bw = new BinaryWriter(File.Open(AppData.BinaryFileFolderPath + $"/{fileName}Table.bytes",
+                FileMode.OpenOrCreate)))
             {
                 for (int i = 0; i < rowDatas.Length; i++)
                 {
@@ -145,7 +173,15 @@ namespace FlatTable
                         RowCellData cellData = rowData.rowCellDatas[j];
                         if (typeBinaryWriterDic.TryGetValue(cellData.typeName, out Action<BinaryWriter, string> writeHandler))
                         {
-                            writeHandler(bw, cellData.value);
+                            try
+                            {
+                                writeHandler(bw, cellData.value);
+                            }
+                            catch (WriteFileException e)
+                            {
+                                bw.Dispose();
+                                throw;
+                            }
                         }
                     }
                 }
@@ -379,13 +415,13 @@ namespace FlatTable
             fw.WriteLine("list.Clear();");
             fw.EndBlock();
             fw.WriteLine("list = null;");
-            
+
             fw.WriteLine("if(map != null)");
             fw.BeginBlock();
             fw.WriteLine("map.Clear();");
             fw.EndBlock();
             fw.WriteLine("map = null;");
-            
+
             fw.WriteLine("ins = null;");
             fw.EndBlock();
         }
