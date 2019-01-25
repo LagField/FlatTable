@@ -17,6 +17,18 @@
 如果是.net项目
 [TableBase](/FlatTable/FlatTable/RuntimeCode/TableBase.cs)   [TableLoader](/FlatTable/FlatTable/RuntimeCode/TableLoader.cs)   
 
+每个表格数据都会对应一个静态类，Unity项目建议游戏启动时就把所有配置表加载了
+
+```
+        //例子：从StreamingAssets路径加载
+        //设置加载模式
+        TableLoader.loadType = LoadType.FilePath;
+        //设置加载路径
+        TableLoader.fileLoadPath = Application.streamingAssetsPath + "/Table";
+        //加载
+        TableLoader.Load<AnotherTestTable>();
+```
+
 ## Excel表格格式要求
 表格只会读取第一个sheet。
 
@@ -28,4 +40,7 @@
 
 如果要使用数组，则在字段名后面加上[]并在里面写上该元素是数组的第几个，从0开始，必须连续。例如map_id[0] map_id[1] map_id[2]。数组类型在表格中可以以任意顺序放置，程序会自动帮你把数组排序存放，只需要保证序号是从0开始且连续的，否则工具会弹出错误提示。
 
+如果读取范围内有格子没有内容，则会记录该类型的默认值。
+
 excel格式例子可以参考[文件夹](/Test/ExcelFile/)
+
