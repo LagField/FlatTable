@@ -19,7 +19,7 @@
 
 每个表格数据都会对应一个静态类，Unity项目建议游戏启动时就把所有配置表加载了
 
-```
+```csharp
         //例子：从StreamingAssets路径加载
         //设置加载模式
         TableLoader.loadType = LoadType.FilePath;
